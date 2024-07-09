@@ -1,91 +1,95 @@
-import { useState } from 'react'
+import { useState } from 'react';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
-import { Row,Col,Container,Card } from 'react-bootstrap'
+import { Row, Col, Container, Card } from 'react-bootstrap';
 
-import './App.css'
+import './App.css';
 
 function App() {
-  const [students, setStudents] = useState([])
-  const [name,setName]=useState('')
-  const [age,setAge]=useState('')
-  const [editIndex,setEditIndex]=useState(null)
+  const [pokemons, setPokemons] = useState([]);
+  const [pokemonName, setPokemonName] = useState('');
+  const [editIndex, setEditIndex] = useState(null);
+  const [pokemonData, setPokemonData] = useState(null);
 
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-  const handleSubmit=(event)=>{
-    event.preventDefault()
-    if (editIndex!==null){
-      const newStudents=[...students]
-      newStudents[editIndex]={name, age}
-      setStudents(newStudents)
-      setEditIndex(null)
-    }else{
-      setStudents([...students,{name, age}])
+    if (!pokemonName.trim()) {
+      alert('Ingrese un nombre de pokemon válido');
+      return;
     }
 
-    
+    try {
+      const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName.toLowerCase()}`);
+      if (!response.ok) {
+        throw new Error('No se encontró el pokemon');
+      }
+      const data = await response.json();
+      setPokemonData(data);
+      
+      if (editIndex !== null) {
+        const newPokemons = [...pokemons];
+        newPokemons[editIndex] = { name: pokemonName, data };
+        setPokemons(newPokemons);
+        setEditIndex(null);
+      } else {
+        setPokemons([...pokemons, { name: pokemonName, data }]);
+      }
 
-   setName('')
-   setAge('')
-  }
-const handleDelete=(index)=>{
-  const newStudent=[...students]
-  newStudent.splice(index,1)
-  setStudents(newStudent)
-}
+      setPokemonName('');
+    } catch (error) {
+      alert(error.message);
+    }
+  };
 
-const handleEdit=(index)=>{
-  setName(students[index].name)
-  setAge(students[index].age)
-  setEditIndex(index)
-}
+  const handleDelete = (index) => {
+    const newPokemons = [...pokemons];
+    newPokemons.splice(index, 1);
+    setPokemons(newPokemons);
+  };
 
+  const handleEdit = (index) => {
+    setPokemonName(pokemons[index].name);
+    setPokemonData(pokemons[index].data);
+    setEditIndex(index);
+  };
 
   return (
     <Container>
       <Row>
-    <Form onSubmit={handleSubmit}>
-    
-      <Form.Group className="mb-3">
-        <Form.Label >Nombre estudiante</Form.Label>
-        <Form.Control  placeholder="Ingrese Nombre" value={name} onChange={(e)=>setName(e.target.value)}/>
-      </Form.Group>
-      <Form.Group className="mb-3">
-        <Form.Label >Edad estudiante</Form.Label>
-        <Form.Control  placeholder="Ingrese Edad" value={age} onChange={(e)=>setAge(e.target.value)} />
-      </Form.Group>
-      
-      <Button type="submit">
-        {
-          editIndex!==null ? 'Actualizar estudiante': 'Agregar estudiante'
-        }
-        
-        </Button>
-   
-  </Form>
-  </Row>
-  <Row style={{padding:10}}>
-    {
-      students.map((student,index)=>(
-        <Col sm={6} key={index}>
-          <Card style={{ width: '18rem' }}>
-      
-             <Card.Body>
-                 <Card.Title>Datos Estudiante</Card.Title>
-                 <Card.Text>{student.name}</Card.Text>
-                 <Card.Text>Edad: {student.age}</Card.Text>
-        <Button variant="danger"onClick={()=>handleDelete(index)}>Eliminar</Button>
-        <Button variant="warning"onClick={()=>handleEdit(index)}>Modificar</Button>
-      </Card.Body>
-    </Card>
-        </Col>
-      ))
-    }
- 
-  </Row>
-  </Container>
-  )
+        <Form onSubmit={handleSubmit}>
+          <Form.Group className="mb-3">
+            <Form.Label>Nombre Pokemon</Form.Label>
+            <Form.Control placeholder="Ingrese Nombre del Pokemon" value={pokemonName} onChange={(e) => setPokemonName(e.target.value)} />
+          </Form.Group>
+          <Button type="submit">
+            {editIndex !== null ? 'Actualizar Pokemon' : 'Agregar Pokemon'}
+          </Button>
+        </Form>
+      </Row>
+      <Row style={{ padding: 10 }}>
+        {pokemons.map((pokemon, index) => (
+          <Col sm={6} key={index}>
+            <Card style={{ width: '18rem' }}>
+              <Card.Body>
+                <Card.Title>{pokemon.name}</Card.Title>
+                {pokemon.data && (
+                  <>
+                    <Card.Text>Altura: {pokemon.data.height}</Card.Text>
+                    <Card.Text>Peso: {pokemon.data.weight}</Card.Text>
+                    <Card.Img variant="top" src={pokemon.data.sprites.front_default} />
+                  </>
+                )}
+                <Button variant="danger" onClick={() => handleDelete(index)}>Eliminar</Button>
+                <Button variant="warning" onClick={() => handleEdit(index)}>Modificar</Button>
+              </Card.Body>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+    </Container>
+  );
+}
 
-}  
+export default App;
 
-export default App
