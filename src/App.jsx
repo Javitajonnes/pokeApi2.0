@@ -69,7 +69,7 @@ function App() {
       </Row>
       <Row style={{ padding: 10 }}>
         {pokemons.map((pokemon, index) => (
-          <Col sm={6} key={index}>
+          <Col sm={4} key={index}>
             <Card style={{ width: '18rem' }}>
               <Card.Body>
                 <Card.Title>{pokemon.name}</Card.Title>
